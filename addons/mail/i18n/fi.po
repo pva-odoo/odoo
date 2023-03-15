@@ -31,18 +31,20 @@
 # Heikki Katajisto <heikki.katajisto@myyntivoima.fi>, 2022
 # Tuomas Lyyra <tuomas.lyyra@legenda.fi>, 2022
 # Miika Nissi <miika.nissi@tawasta.fi>, 2022
-# Jarmo Kortetjärvi <jarmo.kortetjarvi@gmail.com>, 2022
 # Martin Trigaux, 2022
 # artol <arto.leskinen@tek.fi>, 2022
 # Tuomo Aura <tuomo.aura@web-veistamo.fi>, 2022
+# Ossi Mantylahti <ossi.mantylahti@obs-solutions.fi>, 2023
+# Konsta Aavaranta, 2023
+# Jarmo Kortetjärvi <jarmo.kortetjarvi@gmail.com>, 2023
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 16.0beta\n"
+"Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-10 10:22+0000\n"
+"POT-Creation-Date: 2023-02-02 10:33+0000\n"
 "PO-Revision-Date: 2022-09-22 05:53+0000\n"
-"Last-Translator: Tuomo Aura <tuomo.aura@web-veistamo.fi>, 2022\n"
+"Last-Translator: Jarmo Kortetjärvi <jarmo.kortetjarvi@gmail.com>, 2023\n"
 "Language-Team: Finnish (https://www.transifex.com/odoo/teams/41243/fi/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -861,11 +863,6 @@ msgid "<strong>Original note:</strong>"
 msgstr "<strong>Alkuperäinen muistiinpano:</strong>"
 
 #. module: mail
-#: model_terms:ir.ui.view,arch_db:mail.mail_activity_view_form_popup
-msgid "<strong>Recommended Activities</strong>"
-msgstr "<strong>Ehdotetut toimenpiteet</strong>"
-
-#. module: mail
 #: model_terms:ir.ui.view,arch_db:mail.res_config_settings_view_form
 msgid ""
 "<strong>Save</strong> this page and come back here to set up the feature."
@@ -1443,8 +1440,8 @@ msgid "Animals & Nature"
 msgstr ""
 
 #. module: mail
-#. odoo-python
 #. odoo-javascript
+#. odoo-python
 #: code:addons/mail/models/mail_channel.py:0
 #: code:addons/mail/static/src/components/message/message.xml:0
 #: code:addons/mail/static/src/models/message.js:0
@@ -1980,7 +1977,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:mail.field_mail_compose_message__can_edit_body
 #: model:ir.model.fields,field_description:mail.field_mail_composer_mixin__can_edit_body
 msgid "Can Edit Body"
-msgstr ""
+msgstr "Voi muokata runkoa"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_resend_message__can_resend
@@ -2395,6 +2392,7 @@ msgstr "Yritykset"
 #. odoo-javascript
 #: code:addons/mail/static/src/js/activity.js:0
 #: code:addons/mail/static/src/models/mail_template.js:0
+#: code:addons/mail/static/src/models/composer_view.js:0
 #: model:ir.actions.act_window,name:mail.action_email_compose_message_wizard
 #: model_terms:ir.ui.view,arch_db:mail.email_compose_message_wizard_form
 #, python-format
@@ -3237,14 +3235,14 @@ msgstr ""
 #: code:addons/mail/static/src/models/activity_list_view_item.js:0
 #, python-format
 msgid "Due in %s days"
-msgstr ""
+msgstr "Erääntyy %s päivässä"
 
 #. module: mail
 #. odoo-javascript
 #: code:addons/mail/static/src/models/activity_view.js:0
 #, python-format
 msgid "Due in %s days:"
-msgstr ""
+msgstr "Erääntyy %s päivässä:"
 
 #. module: mail
 #. odoo-javascript
@@ -3346,7 +3344,7 @@ msgstr "Sähköposti"
 #: model:ir.model.fields,field_description:mail.field_mail_mail__email_add_signature
 #: model:ir.model.fields,field_description:mail.field_mail_message__email_add_signature
 msgid "Email Add Signature"
-msgstr ""
+msgstr "Sähköposti Lisää allekirjoitus"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_blacklist__email
@@ -3390,7 +3388,7 @@ msgstr ""
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_compose_message__email_layout_xmlid
 msgid "Email Notification Layout"
-msgstr ""
+msgstr "Sähköposti-ilmoitusten asettelu"
 
 #. module: mail
 #: model_terms:ir.ui.view,arch_db:mail.mail_template_preview_view_form
@@ -4767,7 +4765,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:mail.field_mail_compose_message__is_mail_template_editor
 #: model:ir.model.fields,field_description:mail.field_mail_composer_mixin__is_mail_template_editor
 msgid "Is Editor"
-msgstr ""
+msgstr "On muokkaaja"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_blacklist__message_is_follower
@@ -5463,11 +5461,12 @@ msgstr ""
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_compose_message__is_log
 msgid "Log as Internal Note"
-msgstr ""
+msgstr "Kirjaa muistiinpano"
 
 #. module: mail
 #. odoo-javascript
 #: code:addons/mail/static/src/components/chatter_topbar/chatter_topbar.xml:0
+#: code:addons/mail/static/src/models/composer_view.js:0
 #, python-format
 msgid "Log note"
 msgstr "Kirjaa muistiinpano"
@@ -5591,7 +5590,7 @@ msgstr "Sähköpostipalvelin"
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_composer_mixin__template_id
 msgid "Mail Template"
-msgstr ""
+msgstr "Viestipohja"
 
 #. module: mail
 #: model:res.groups,name:mail.group_mail_template_editor
@@ -5634,14 +5633,12 @@ msgstr ""
 #. module: mail
 #: model:ir.actions.server,name:mail.ir_cron_mail_scheduler_action_ir_actions_server
 #: model:ir.cron,cron_name:mail.ir_cron_mail_scheduler_action
-#: model:ir.cron,name:mail.ir_cron_mail_scheduler_action
 msgid "Mail: Email Queue Manager"
 msgstr "Sähköposti: Sähköpostijonon hallinta"
 
 #. module: mail
 #: model:ir.actions.server,name:mail.ir_cron_mail_gateway_action_ir_actions_server
 #: model:ir.cron,cron_name:mail.ir_cron_mail_gateway_action
-#: model:ir.cron,name:mail.ir_cron_mail_gateway_action
 msgid "Mail: Fetchmail Service"
 msgstr "Postipalvelin"
 
@@ -5690,6 +5687,8 @@ msgid ""
 "Manage answers as new incoming emails instead of replies going to the same "
 "thread."
 msgstr ""
+"Hallitse vastauksia uusina saapuvina sähköpostiviesteinä sen sijaan, että "
+"vastaukset menisivät samaan viestiketjuun."
 
 #. module: mail
 #. odoo-javascript
@@ -6491,14 +6490,12 @@ msgstr "Ilmoitustyyppi"
 #. module: mail
 #: model:ir.actions.server,name:mail.ir_cron_delete_notification_ir_actions_server
 #: model:ir.cron,cron_name:mail.ir_cron_delete_notification
-#: model:ir.cron,name:mail.ir_cron_delete_notification
 msgid "Notification: Delete Notifications older than 6 Month"
 msgstr "Ilmoitukset: Poista yli 6kk ikäiset"
 
 #. module: mail
 #: model:ir.actions.server,name:mail.ir_cron_send_scheduled_message_ir_actions_server
 #: model:ir.cron,cron_name:mail.ir_cron_send_scheduled_message
-#: model:ir.cron,name:mail.ir_cron_send_scheduled_message
 msgid "Notification: Send scheduled message notifications"
 msgstr ""
 
@@ -6841,6 +6838,13 @@ msgid "Open in Discuss"
 msgstr "Avaa keskustelussa"
 
 #. module: mail
+#. odoo-javascript
+#: code:addons/mail/static/src/models/message_view.js:0
+#, python-format
+msgid "Open profile"
+msgstr ""
+
+#. module: mail
 #. odoo-python
 #: code:addons/mail/models/mail_template.py:0
 #, python-format
@@ -6899,6 +6903,10 @@ msgid ""
 "a placeholder expression that provides the appropriate language, e.g. {{ "
 "object.partner_id.lang }}."
 msgstr ""
+"Valinnainen käännöskieli (ISO-koodi), joka valitaan sähköpostia "
+"lähetettäessä. Jos sitä ei ole asetettu, käytetään englanninkielistä "
+"versiota. Tämän pitäisi yleensä olla sijoitusilmaus, joka antaa sopivan "
+"kielen, esim. {{ object.partner_id.lang }}."
 
 #. module: mail
 #: model:ir.model.fields,help:mail.field_mail_compose_message__reply_to_mode
@@ -6907,6 +6915,9 @@ msgid ""
 " Another Email Address: Answers go to the email address mentioned in the tracking message-id instead of original document discussion thread. \n"
 " This has an impact on the generated message-id."
 msgstr ""
+"Alkuperäinen keskustelu: Vastaukset tulevat alkuperäisen asiakirjan keskusteluketjuun.\n"
+" Toinen sähköpostiosoite: Vastaukset lähetetään seurantaviestin tunnisteessa mainittuun sähköpostiosoitteeseen alkuperäisen asiakirjan keskusteluketjun sijasta.\n"
+" Tämä vaikuttaa luotuun viestin tunnisteeseen."
 
 #. module: mail
 #. odoo-javascript
@@ -7370,7 +7381,6 @@ msgstr "Kustantajan takuusopimus"
 #. module: mail
 #: model:ir.actions.server,name:mail.ir_cron_module_update_notification_ir_actions_server
 #: model:ir.cron,cron_name:mail.ir_cron_module_update_notification
-#: model:ir.cron,name:mail.ir_cron_module_update_notification
 msgid "Publisher: Update Notification"
 msgstr "Julkaisija: Päivitä ilmoitus"
 
@@ -7550,6 +7560,11 @@ msgid "Recipients"
 msgstr "Vastaanottajat"
 
 #. module: mail
+#: model_terms:ir.ui.view,arch_db:mail.mail_activity_view_form_popup
+msgid "Recommended Activities"
+msgstr ""
+
+#. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_activity__recommended_activity_type_id
 msgid "Recommended Activity Type"
 msgstr "Suositellun toiminnon tyyppi"
@@ -7698,12 +7713,12 @@ msgstr "Poista seuraaja"
 #: model:ir.model.fields,field_description:mail.field_mail_render_mixin__render_model
 #: model:ir.model.fields,field_description:mail.field_mail_template__render_model
 msgid "Rendering Model"
-msgstr ""
+msgstr "Renderöintimalli"
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_compose_message__reply_to_mode
 msgid "Replies"
-msgstr ""
+msgstr "Vastaukset"
 
 #. module: mail
 #. odoo-javascript
@@ -8939,9 +8954,12 @@ msgstr ""
 #: model:ir.model.fields,help:mail.field_res_partner__vat
 #: model:ir.model.fields,help:mail.field_res_users__vat
 msgid ""
-"The Tax Identification Number. Complete it if the contact is subjected to "
-"government taxes. Used in some legal statements."
+"The Tax Identification Number. Values here will be validated based on the "
+"country format. You can use '/' to indicate that the partner is not subject "
+"to tax."
 msgstr ""
+"Verotunniste. Tässä olevat arvot validoidaan maamuodon perusteella. Voit "
+"käyttää '/'-merkkiä osoittaaksesi, että kumppani ei ole verovelvollinen."
 
 #. module: mail
 #. odoo-javascript
@@ -10055,7 +10073,7 @@ msgstr "Kirjoita muistiinpanot"
 #. module: mail
 #: model_terms:ir.ui.view,arch_db:mail.email_compose_message_wizard_form
 msgid "Write your message here..."
-msgstr ""
+msgstr "Kirjoita viestisi tähän..."
 
 #. module: mail
 #. odoo-python
@@ -11114,7 +11132,7 @@ msgstr ""
 #: code:addons/mail/static/src/models_data/emoji_data.js:0
 #, python-format
 msgid "automated"
-msgstr ""
+msgstr "automaattinen"
 
 #. module: mail
 #. odoo-javascript
@@ -13018,7 +13036,7 @@ msgstr ""
 #: code:addons/mail/static/src/models_data/emoji_data.js:0
 #, python-format
 msgid "business"
-msgstr ""
+msgstr "liiketoiminta"
 
 #. module: mail
 #. odoo-javascript
@@ -15579,7 +15597,7 @@ msgstr ""
 #: code:addons/mail/static/src/models_data/emoji_data.js:0
 #, python-format
 msgid "date"
-msgstr ""
+msgstr "päivämäärä"
 
 #. module: mail
 #: model:ir.model.fields.selection,name:mail.selection__mail_activity_type__delay_unit__days
@@ -16158,8 +16176,8 @@ msgid "doctor"
 msgstr ""
 
 #. module: mail
-#. odoo-python
 #. odoo-javascript
+#. odoo-python
 #: code:addons/mail/models/mail_thread.py:0
 #: code:addons/mail/static/src/components/message/message.xml:0
 #: code:addons/mail/static/src/models_data/emoji_data.js:0
@@ -16854,7 +16872,7 @@ msgstr ""
 #: code:addons/mail/static/src/models_data/emoji_data.js:0
 #, python-format
 msgid "email"
-msgstr ""
+msgstr "sähköposti"
 
 #. module: mail
 #. odoo-javascript
@@ -25215,7 +25233,7 @@ msgstr ""
 #: code:addons/mail/static/src/models_data/emoji_data.js:0
 #, python-format
 msgid "not"
-msgstr ""
+msgstr "ei"
 
 #. module: mail
 #. odoo-javascript
@@ -29624,7 +29642,7 @@ msgstr ""
 #: code:addons/mail/static/src/models_data/emoji_data.js:0
 #, python-format
 msgid "set"
-msgstr ""
+msgstr "asetettuna"
 
 #. module: mail
 #. odoo-javascript

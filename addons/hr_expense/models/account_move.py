@@ -26,7 +26,7 @@ class AccountMove(models.Model):
     # Behave exactly like a receipt for everything except the display
     # This enables the synchronisation of payment terms, and sets the taxes and accounts based on the product
     def is_purchase_document(self, include_receipts=False):
-        return bool(self.expense_sheet_id and include_receipts) or super().is_purchase_document(include_receipts)
+        return bool(include_receipts and self.sudo().expense_sheet_id) or super().is_purchase_document(include_receipts)
 
     # Expenses can be written on journal other than purchase, hence don't include them in the constraint check
     def _check_journal_move_type(self):
@@ -36,6 +36,13 @@ class AccountMove(models.Model):
         if self.line_ids.expense_id:
             return _("Expense entry Created")
         return super()._creation_message()
+
+    @api.depends('expense_sheet_id.payment_mode')
+    def _compute_payment_state(self):
+        company_paid = self.filtered(lambda m: m.expense_sheet_id.payment_mode == 'company_account')
+        for move in company_paid:
+            move.payment_state = move._get_invoice_in_payment_state()
+        super(AccountMove, self - company_paid)._compute_payment_state()
 
     @api.depends('expense_sheet_id')
     def _compute_needed_terms(self):

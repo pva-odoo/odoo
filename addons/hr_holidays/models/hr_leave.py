@@ -115,10 +115,19 @@ class HolidaysRequest(models.Model):
 
     def _default_get_request_parameters(self, values):
         new_values = dict(values)
-        if values.get('date_from'):
-            new_values['request_date_from'] = self._adjust_date_based_on_tz(values['date_from'].date(), values['date_from'].time())
-        if values.get('date_to'):
-            new_values['request_date_to'] = self._adjust_date_based_on_tz(values['date_to'].date(), values['date_to'].time())
+        if values.get('date_from') and values.get('date_to'):
+            date_from = self._adjust_date_based_on_tz(values['date_from'].date(), values['date_from'].time())
+            date_to = self._adjust_date_based_on_tz(values['date_to'].date(), values['date_to'].time())
+            new_values.update([('request_date_from', date_from), ('request_date_to', date_to)])
+
+            employee = self.env['hr.employee'].browse(values['employee_id']) if values.get('employee_id') else self.env.user.employee_id
+            default_start_time = self._get_start_or_end_from_attendance(7, datetime.now().date(), employee).time()
+            default_end_time = self._get_start_or_end_from_attendance(19, datetime.now().date(), employee).time()
+            if values['date_from'].time() == default_start_time and values['date_to'].time() == default_end_time:
+                attendance_from, attendance_to = self._get_attendances(employee, date_from, date_to)
+                new_values['date_from'] = self._get_start_or_end_from_attendance(attendance_from.hour_from, date_from, employee)
+                new_values['date_to'] = self._get_start_or_end_from_attendance(attendance_to.hour_to, date_to, employee)
+
         return new_values
 
     active = fields.Boolean(default=True, readonly=True)
@@ -153,7 +162,7 @@ class HolidaysRequest(models.Model):
     employee_id = fields.Many2one(
         'hr.employee', compute='_compute_from_employee_ids', store=True, string='Employee', index=True, readonly=False, ondelete="restrict",
         states={'cancel': [('readonly', True)], 'refuse': [('readonly', True)], 'validate1': [('readonly', True)], 'validate': [('readonly', True)]},
-        tracking=True)
+        tracking=True, compute_sudo=False)
     employee_company_id = fields.Many2one(related='employee_id.company_id', readonly=True, store=True)
     active_employee = fields.Boolean(related='employee_id.active', string='Employee Active', readonly=True)
     tz_mismatch = fields.Boolean(compute='_compute_tz_mismatch')
@@ -197,7 +206,7 @@ class HolidaysRequest(models.Model):
         'hr.employee', compute='_compute_from_holiday_type', store=True, string='Employees', readonly=False,
         states={'cancel': [('readonly', True)], 'refuse': [('readonly', True)], 'validate1': [('readonly', True)], 'validate': [('readonly', True)]})
     multi_employee = fields.Boolean(
-        compute='_compute_from_employee_ids', store=True,
+        compute='_compute_from_employee_ids', store=True, compute_sudo=False,
         help='Holds whether this allocation concerns more than 1 employee')
     category_id = fields.Many2one(
         'hr.employee.category', compute='_compute_from_holiday_type', store=True, string='Employee Tag',
@@ -830,7 +839,6 @@ class HolidaysRequest(models.Model):
                             )
                         ))
                 else:
-                    display_date = fields.Date.to_string(date_from_utc) or ""
                     if leave.number_of_days > 1 and date_from_utc and date_to_utc:
                         display_date += ' / %s' % format_date(self.env, date_to_utc) or ""
                     if not target or self.env.context.get('hide_employee_name') and 'employee_id' in self.env.context.get('group_by', []):
@@ -1423,8 +1431,12 @@ class HolidaysRequest(models.Model):
                         if not is_officer and self.env.user != holiday.employee_id.leave_manager_id:
                             raise UserError(_('You must be either %s\'s manager or Time off Manager to approve this leave') % (holiday.employee_id.name))
 
-                    if (state == 'validate' and val_type == 'manager') and self.env.user != holiday.employee_id.leave_manager_id:
-                        raise UserError(_('You must be %s\'s Manager to approve this leave', holiday.employee_id.name))
+                    if (state == 'validate' and val_type == 'manager') and self.env.user != (holiday.employee_id | holiday.employee_ids).leave_manager_id:
+                        if holiday.employee_id:
+                            employees = holiday.employee_id
+                        else:
+                            employees = ', '.join(holiday.employee_ids.filtered(lambda e: e.leave_manager_id != self.env.user).mapped('name'))
+                        raise UserError(_('You must be %s\'s Manager to approve this leave', employees))
 
                     if not is_officer and (state == 'validate' and val_type == 'hr') and holiday.holiday_type == 'employee':
                         raise UserError(_('You must either be a Time off Officer or Time off Manager to approve this leave'))

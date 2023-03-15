@@ -156,9 +156,10 @@ class AccountEdiXmlCII(models.AbstractModel):
             'ship_to_trade_party': invoice.partner_shipping_id if 'partner_shipping_id' in invoice._fields and invoice.partner_shipping_id
                 else invoice.commercial_partner_id,
             # Chorus Pro fields
-            'buyer_reference': invoice.buyer_reference if 'buyer_reference' in invoice._fields and invoice.buyer_reference else invoice.ref,
-            'purchase_order_reference': invoice.purchase_order_reference if 'purchase_order_reference' in invoice._fields and invoice.purchase_order_reference
-                else invoice.payment_reference or invoice.name,
+            'buyer_reference': invoice.buyer_reference if 'buyer_reference' in invoice._fields
+                and invoice.buyer_reference else invoice.commercial_partner_id.ref,
+            'purchase_order_reference': invoice.purchase_order_reference if 'purchase_order_reference' in invoice._fields
+                and invoice.purchase_order_reference else invoice.ref or invoice.name,
             'contract_reference': invoice.contract_reference if 'contract_reference' in invoice._fields and invoice.contract_reference else '',
         }
 
@@ -246,15 +247,21 @@ class AccountEdiXmlCII(models.AbstractModel):
         if ref_node is not None:
             invoice.ref = ref_node.text
 
+        # ==== Invoice origin ====
+
+        invoice_origin_node = tree.find('./{*}OrderReference/{*}ID')
+        if invoice_origin_node is not None:
+            invoice.invoice_origin = invoice_origin_node.text
+
         # === Note/narration ====
 
         narration = ""
         note_node = tree.find('./{*}ExchangedDocument/{*}IncludedNote/{*}Content')
-        if note_node is not None:
+        if note_node is not None and note_node.text:
             narration += note_node.text + "\n"
 
         payment_terms_node = tree.find('.//{*}SpecifiedTradePaymentTerms/{*}Description')
-        if payment_terms_node is not None:
+        if payment_terms_node is not None and payment_terms_node.text:
             narration += payment_terms_node.text + "\n"
 
         invoice.narration = narration
@@ -268,7 +275,7 @@ class AccountEdiXmlCII(models.AbstractModel):
         # ==== invoice_date ====
 
         invoice_date_node = tree.find('./{*}ExchangedDocument/{*}IssueDateTime/{*}DateTimeString')
-        if invoice_date_node is not None:
+        if invoice_date_node is not None and invoice_date_node.text:
             date_str = invoice_date_node.text
             date_obj = datetime.strptime(date_str, DEFAULT_FACTURX_DATE_FORMAT)
             invoice.invoice_date = date_obj.strftime(DEFAULT_SERVER_DATE_FORMAT)
@@ -276,7 +283,7 @@ class AccountEdiXmlCII(models.AbstractModel):
         # ==== invoice_date_due ====
 
         invoice_date_due_node = tree.find('.//{*}SpecifiedTradePaymentTerms/{*}DueDateDateTime/{*}DateTimeString')
-        if invoice_date_due_node is not None:
+        if invoice_date_due_node is not None and invoice_date_due_node.text:
             date_str = invoice_date_due_node.text
             date_obj = datetime.strptime(date_str, DEFAULT_FACTURX_DATE_FORMAT)
             invoice.invoice_date_due = date_obj.strftime(DEFAULT_SERVER_DATE_FORMAT)

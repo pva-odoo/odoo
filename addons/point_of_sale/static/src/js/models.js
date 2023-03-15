@@ -10,11 +10,13 @@ var time = require('web.time');
 var utils = require('web.utils');
 var { Gui } = require('point_of_sale.Gui');
 const { batched, uuidv4 } = require("point_of_sale.utils");
+const { escape } = require("@web/core/utils/strings");
 
 var QWeb = core.qweb;
 var _t = core._t;
 var round_di = utils.round_decimals;
 var round_pr = utils.round_precision;
+const Markup = utils.Markup
 
 const Registries = require('point_of_sale.Registries');
 const { markRaw, reactive } = owl;
@@ -112,9 +114,6 @@ class PosGlobalState extends PosModel {
 
         this.numpadMode = 'quantity';
 
-        this.isEveryPartnerLoaded = false;
-        this.isEveryProductLoaded = false;
-
         // Record<orderlineId, { 'qty': number, 'orderline': { qty: number, refundedQty: number, orderUid: string }, 'destinationOrderUid': string }>
         this.toRefundLines = {};
         this.TICKET_SCREEN_STATE = {
@@ -210,6 +209,9 @@ class PosGlobalState extends PosModel {
         this.base_url = loadedData['base_url'];
         await this._loadFonts();
         await this._loadPictures();
+    }
+    async _getTableOrdersFromServer(tableIds) {
+        return await super._getTableOrdersFromServer(tableIds);
     }
     _loadPosSession() {
         // We need to do it here, since only then the local storage has the correct uuid
@@ -331,43 +333,38 @@ class PosGlobalState extends PosModel {
 
     // reload the list of partner, returns as a promise that resolves if there were
     // updated partners, and fails if not
-    load_new_partners(){
-        return new Promise((resolve, reject)  => {
-            var domain = this.prepare_new_partners_domain();
-            this.env.services.rpc({
-                model: 'pos.session',
-                method: 'get_pos_ui_res_partner_by_params',
-                args: [[odoo.pos_session_id], {domain}],
-            }, {
-                timeout: 3000,
-                shadow: true,
-            })
-            .then(partners => {
-                if (this.addPartners(partners)) {   // check if the partners we got were real updates
-                    resolve();
-                } else {
-                    reject('Failed in updating partners.');
-                }
-            }, function (type, err) { reject(); });
-        });
-    }
-
-    async updateIsEveryPartnerLoaded() {
-        let partnersCount = await this.env.services.rpc({
-            model: 'res.partner',
-            method: 'search_count',
-            args: [[]],
-        });
-        this.isEveryPartnerLoaded = partnersCount === this.db.partner_sorted.length;
-    }
-
-    async updateIsEveryProductLoaded() {
-        let productsCount = await this.env.services.rpc({
-            model: 'product.product',
-            method: 'search_count',
-            args: [[['available_in_pos', '=', true]]],
-        });
-        this.isEveryProductLoaded = productsCount === this.db.get_product_by_category(this.db.root_category_id).length;
+    async load_new_partners(){
+        let search_params = { domain: this.prepare_new_partners_domain() };
+        if (this.env.pos.config.limited_partners_loading) {
+            search_params['order'] = 'write_date desc';
+            if (this.env.pos.config.partner_load_background) {
+                search_params['limit'] = this.env.pos.config.limited_partners_amount || 1;
+            }
+            else {
+                search_params['limit'] = 1;
+            }
+        }
+        let partners = await this.env.services.rpc({
+            model: 'pos.session',
+            method: 'get_pos_ui_res_partner_by_params',
+            args: [[odoo.pos_session_id], search_params],
+        }, {
+            timeout: 3000,
+            shadow: true,
+        })
+        if (this.env.pos.config.partner_load_background) {
+            this.loadPartnersBackground(
+                search_params['domain'],
+                this.env.pos.config.limited_partners_amount || 1,
+                'write_date desc'
+            );
+        }
+        if (this.addPartners(partners)){
+            return true
+        }
+        else{
+            return false
+        }
     }
 
     setSelectedCategoryId(categoryId) {
@@ -524,7 +521,7 @@ class PosGlobalState extends PosModel {
             page += 1;
         } while(products.length == this.config.limited_products_amount);
     }
-    async loadPartnersBackground() {
+    async loadPartnersBackground(domain=[], offset=0, order=false) {
         // Start at the first page since the first set of loaded partners are not actually in the
         // same order as this background loading procedure.
         let i = 0;
@@ -536,8 +533,10 @@ class PosGlobalState extends PosModel {
                 args: [
                     [odoo.pos_session_id],
                     {
+                        domain: domain,
                         limit: this.config.limited_partners_amount,
-                        offset: this.config.limited_partners_amount * i,
+                        offset: offset + this.config.limited_partners_amount * i,
+                        order: order,
                     },
                 ],
                 context: this.env.session.user_context,
@@ -696,7 +695,7 @@ class PosGlobalState extends PosModel {
         if (order) {
             order.get_orderlines().forEach(function (orderline) {
                 var product = orderline.product;
-                var image_url = `/web/image?model=product.product&field=image_128&id=${product.id}&unique=${product.write_date}`;
+                var image_url = `/web/image?model=product.product&field=image_128&id=${product.id}&unique=${product.__last_update}`;
 
                 // only download and convert image if we haven't done it before
                 if (!(product.id in PRODUCT_ID_TO_IMAGE_CACHE)) {
@@ -1318,6 +1317,9 @@ class PosGlobalState extends PosModel {
         });
         this.db.update_partners(partnerWithUpdatedTotalDue);
         return partnerWithUpdatedTotalDue;
+    }
+    doNotAllowRefundAndSales() {
+        return false;
     }
 }
 PosGlobalState.prototype.electronic_payment_interfaces = {};
@@ -1982,8 +1984,8 @@ class Orderline extends PosModel {
             0
         );
     }
-    _map_tax_fiscal_position(tax, order = false) {
-        return this.pos._map_tax_fiscal_position(tax, order);
+    _mapTaxFiscalPosition(tax, order = false) {
+        return this.pos._mapTaxFiscalPosition(tax, order);
     }
     /**
      * Mirror JS method of:
@@ -2021,7 +2023,6 @@ class Orderline extends PosModel {
         return {
             "priceWithTax": all_taxes.total_included,
             "priceWithoutTax": all_taxes.total_excluded,
-            "priceSumTaxVoid": all_taxes.total_void,
             "priceWithTaxBeforeDiscount": all_taxes_before_discount.total_included,
             "tax": taxtotal,
             "taxDetails": taxdetail,
@@ -2236,11 +2237,12 @@ class Payment extends PosModel {
     }
     //exports as JSON for receipt printing
     export_for_printing(){
+        const ticket = escape(this.ticket).replace(/\n/g, "<br />"); // formatting
         return {
             cid: this.cid,
             amount: this.get_amount(),
             name: this.name,
-            ticket: this.ticket,
+            ticket: Markup(ticket),
         };
     }
     // If payment status is a non-empty string, then it is an electronic payment.
@@ -2720,7 +2722,21 @@ class Order extends PosModel {
         line.set_unit_price(line.compute_fixed_price(line.price));
     }
 
+    _isRefundAndSaleOrder() {
+        if (this.orderlines.length && this.orderlines[0].refunded_orderline_id) {
+            return true;
+        }
+        return false;
+    }
+
     add_product(product, options){
+        if(this.pos.doNotAllowRefundAndSales() && this.orderlines[0] && this.orderlines[0].refunded_orderline_id) {
+            Gui.showPopup('ErrorPopup', {
+                title: _t('Refund and Sales not allowed'),
+                body: _t('It is not allowed to mix refunds and sales')
+            });
+            return;
+        }
         if(this._printed){
             // when adding product with a barcode while being in receipt screen
             this.pos.removeOrder(this);
@@ -3086,28 +3102,33 @@ class Order extends PosModel {
             const last_line = paymentlines ? paymentlines[paymentlines.length-1]: false;
             const last_line_is_cash = last_line ? last_line.payment_method.is_cash_count == true: false;
             if (!only_cash || (only_cash && last_line_is_cash)) {
+                var rounding_method = this.pos.cash_rounding[0].rounding_method;
                 var remaining = this.get_total_with_tax() - this.get_total_paid();
-                var total = round_pr(remaining, this.pos.cash_rounding[0].rounding);
-                var sign = remaining > 0 ? 1.0 : -1.0;
+                var sign = this.get_total_with_tax() > 0 ? 1.0 : -1.0;
+                if(this.get_total_with_tax() < 0 && remaining > 0 || this.get_total_with_tax() > 0 && remaining < 0) {
+                    rounding_method = rounding_method.endsWith("UP") ? "DOWN" : "UP";
+                }
 
+                remaining *= sign;
+                var total = round_pr(remaining, this.pos.cash_rounding[0].rounding);
                 var rounding_applied = total - remaining;
-                rounding_applied *= sign;
+
                 // because floor and ceil doesn't include decimals in calculation, we reuse the value of the half-up and adapt it.
                 if (utils.float_is_zero(rounding_applied, this.pos.currency.decimal_places)){
                     // https://xkcd.com/217/
                     return 0;
                 } else if(Math.abs(this.get_total_with_tax()) < this.pos.cash_rounding[0].rounding) {
                     return 0;
-                } else if(this.pos.cash_rounding[0].rounding_method === "UP" && rounding_applied < 0 && remaining > 0) {
+                } else if(rounding_method === "UP" && rounding_applied < 0 && remaining > 0) {
                     rounding_applied += this.pos.cash_rounding[0].rounding;
                 }
-                else if(this.pos.cash_rounding[0].rounding_method === "UP" && rounding_applied > 0 && remaining < 0) {
+                else if(rounding_method === "UP" && rounding_applied > 0 && remaining < 0) {
                     rounding_applied -= this.pos.cash_rounding[0].rounding;
                 }
-                else if(this.pos.cash_rounding[0].rounding_method === "DOWN" && rounding_applied > 0 && remaining > 0){
+                else if(rounding_method === "DOWN" && rounding_applied > 0 && remaining > 0){
                     rounding_applied -= this.pos.cash_rounding[0].rounding;
                 }
-                else if(this.pos.cash_rounding[0].rounding_method === "DOWN" && rounding_applied < 0 && remaining < 0){
+                else if(rounding_method === "DOWN" && rounding_applied < 0 && remaining < 0){
                     rounding_applied += this.pos.cash_rounding[0].rounding;
                 }
                 return sign * rounding_applied;

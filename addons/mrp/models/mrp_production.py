@@ -1030,6 +1030,7 @@ class MrpProduction(models.Model):
             'warehouse_id': source_location.warehouse_id.id,
             'group_id': self.procurement_group_id.id,
             'propagate_cancel': self.propagate_cancel,
+            'manual_consumption': self.env['stock.move']._determine_is_manual_consumption(product_id, self, bom_line),
         }
         return data
 
@@ -1059,7 +1060,7 @@ class MrpProduction(models.Model):
                     new_qty = min(new_qty, move.reserved_availability)
 
             move.move_line_ids.filtered(lambda ml: ml.state not in ('done', 'cancel')).qty_done = 0
-            move.move_line_ids = move._set_quantity_done_prepare_vals(new_qty)
+            move._set_quantity_done(new_qty)
 
     def _update_raw_moves(self, factor):
         self.ensure_one()
@@ -1078,9 +1079,10 @@ class MrpProduction(models.Model):
                 if move.procure_method == 'make_to_order':
                     procurement_qty = new_qty - old_qty
                     values = move._prepare_procurement_values()
+                    origin = move._prepare_procurement_origin()
                     procurements.append(self.env['procurement.group'].Procurement(
                         move.product_id, procurement_qty, move.product_uom,
-                        move.location_id, move.name, move.origin, move.company_id, values))
+                        move.location_id, move.name, origin, move.company_id, values))
                 update_info.append((move, old_qty, new_qty))
         moves_to_assign._action_assign()
         if procurements:
@@ -1322,9 +1324,10 @@ class MrpProduction(models.Model):
         for workorder in final_workorders:
             workorder._plan_workorder(replan)
 
+        workorders = self.workorder_ids.filtered(lambda w: w.state not in ['done', 'cancel'])
         self.with_context(force_date=True).write({
-            'date_planned_start': min([workorder.leave_id.date_from for workorder in self.workorder_ids]),
-            'date_planned_finished': max([workorder.leave_id.date_to for workorder in self.workorder_ids])
+            'date_planned_start': min([workorder.leave_id.date_from for workorder in workorders]),
+            'date_planned_finished': max([workorder.leave_id.date_to for workorder in workorders])
         })
 
     def button_unplan(self):
@@ -1499,6 +1502,12 @@ class MrpProduction(models.Model):
             if finish_moves and not finish_moves.quantity_done:
                 finish_moves._set_quantity_done(float_round(order.qty_producing - order.qty_produced, precision_rounding=order.product_uom_id.rounding, rounding_method='HALF-UP'))
                 finish_moves.move_line_ids.lot_id = order.lot_producing_id
+            # workorder duration need to be set to calculate the price of the product
+            for workorder in order.workorder_ids:
+                if workorder.state not in ('done', 'cancel'):
+                    workorder.duration_expected = workorder._get_duration_expected()
+                if workorder.duration == 0.0:
+                    workorder.duration = workorder.duration_expected * order.qty_produced/order.product_qty
             order._cal_price(moves_to_do_by_order[order.id])
         moves_to_finish = self.move_finished_ids.filtered(lambda x: x.state not in ('done', 'cancel'))
         moves_to_finish = moves_to_finish._action_done(cancel_backorder=cancel_backorder)
@@ -1564,7 +1573,8 @@ class MrpProduction(models.Model):
             if total_amount < production.product_qty and not cancel_remaining_qty:
                 amounts[production].append(production.product_qty - total_amount)
                 has_backorder_to_ignore[production] = True
-            elif total_amount > production.product_qty or production.state in ['done', 'cancel']:
+            elif float_compare(total_amount, production.product_qty, precision_rounding=production.product_uom_id.rounding) > 0 \
+                    or production.state in ['done', 'cancel']:
                 raise UserError(_("Unable to split with more than the quantity to produce."))
 
         backorder_vals_list = []
@@ -1787,11 +1797,7 @@ class MrpProduction(models.Model):
             'state': 'done',
             'product_uom_qty': 0.0,
         })
-        diff_per_production = {}
         for production in self:
-            diff_per_production[production] = 1
-            if production.qty_produced != production.product_qty:
-                diff_per_production[production] = production.qty_produced/production.product_qty
             production.write({
                 'date_finished': fields.Datetime.now(),
                 'product_qty': production.qty_produced,
@@ -1799,12 +1805,6 @@ class MrpProduction(models.Model):
                 'is_locked': True,
                 'state': 'done',
             })
-
-        for workorder in self.workorder_ids:
-            if workorder.state not in ('done', 'cancel'):
-                workorder.duration_expected = workorder._get_duration_expected()
-            if workorder.duration == 0.0:
-                workorder.duration = workorder.duration_expected * diff_per_production[workorder.production_id]
 
         if not backorders:
             if self.env.context.get('from_workorder'):
@@ -2185,7 +2185,7 @@ class MrpProduction(models.Model):
         pd = self.env['decimal.precision'].precision_get('Product Unit of Measure')
         for production in self:
             if all(float_is_zero(ml.qty_done, precision_digits=pd) for
-                    ml in production.move_raw_ids.move_line_ids.filtered(lambda m: m.state not in ('done', 'cancel'))
+                    ml in production.move_raw_ids.filtered(lambda m: not m.manual_consumption and m.state not in('done', 'cancel')).move_line_ids
                     ) and float_is_zero(production.qty_producing, precision_digits=pd):
                 immediate_productions |= production
         return immediate_productions

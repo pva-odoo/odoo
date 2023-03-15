@@ -6,15 +6,15 @@
 # Nancy Momoland <thanhnguyen.icsc@gmail.com>, 2022
 # Duy BQ <duybq86@gmail.com>, 2022
 # Martin Trigaux, 2022
-# Thi Huong Nguyen, 2022
+# Thi Huong Nguyen, 2023
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 16.0+e\n"
+"Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-15 12:48+0000\n"
+"POT-Creation-Date: 2023-02-02 10:33+0000\n"
 "PO-Revision-Date: 2022-09-22 05:55+0000\n"
-"Last-Translator: Thi Huong Nguyen, 2022\n"
+"Last-Translator: Thi Huong Nguyen, 2023\n"
 "Language-Team: Vietnamese (https://www.transifex.com/odoo/teams/41243/vi/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -259,6 +259,7 @@ msgstr ""
 
 #. module: stock
 #. odoo-python
+#: code:addons/stock/models/stock_rule.py:0
 #: code:addons/stock/models/stock_rule.py:0
 #, python-format
 msgid "+ %d day(s)"
@@ -1612,7 +1613,7 @@ msgstr "Tính toán phí giao hàng và giao bằng FedEx"
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.res_config_settings_view_form
 msgid "Compute shipping costs and ship with Sendcloud"
-msgstr ""
+msgstr "Tính toán phí giao hàng và giao bằng Sendcloud"
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.res_config_settings_view_form
@@ -1792,7 +1793,10 @@ msgid "Count Picking Waiting"
 msgstr "Số giao nhận đang chờ"
 
 #. module: stock
+#. odoo-javascript
+#: code:addons/stock/static/src/views/list/inventory_report_list_controller.js:0
 #: model:ir.actions.report,name:stock.action_report_inventory
+#, python-format
 msgid "Count Sheet"
 msgstr "Đếm trang"
 
@@ -2949,7 +2953,7 @@ msgstr "Mô tả dự báo"
 #: model_terms:ir.ui.view,arch_db:stock.view_picking_form
 #: model_terms:ir.ui.view,arch_db:stock.view_warehouse_orderpoint_tree_editable
 msgid "Forecast Report"
-msgstr ""
+msgstr "Báo cáo dự báo"
 
 #. module: stock
 #: model:ir.model.fields,help:stock.field_product_product__virtual_available
@@ -3161,6 +3165,13 @@ msgstr ""
 #: model:ir.model.fields,help:stock.field_stock_warehouse__sequence
 msgid "Gives the sequence of this line when displaying the warehouses."
 msgstr "Quy định mã số dòng này khi hiển thị trên kho."
+
+#. module: stock
+#. odoo-python
+#: code:addons/stock/models/stock_rule.py:0
+#, python-format
+msgid "Global Visibility Days"
+msgstr ""
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.search_product_lot_filter
@@ -3706,6 +3717,14 @@ msgid "Invalid domain right operand %s"
 msgstr "Toán hạng tên miền không hợp lệ %s"
 
 #. module: stock
+#. odoo-python
+#: code:addons/stock/models/product.py:0
+#, python-format
+msgid ""
+"Invalid rule's configuration, the following rule causes an endless loop: %s"
+msgstr ""
+
+#. module: stock
 #: model:ir.model.fields,field_description:stock.field_stock_quant__inventory_quantity_auto_apply
 msgid "Inventoried Quantity"
 msgstr "Số lượng được kiểm"
@@ -3722,7 +3741,7 @@ msgstr "Số lượng được kiểm"
 #: model_terms:ir.ui.view,arch_db:stock.view_partner_stock_form
 #: model_terms:ir.ui.view,arch_db:stock.view_stock_quant_pivot
 msgid "Inventory"
-msgstr "Kho vận"
+msgstr "Tồn kho"
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.product_product_stock_tree
@@ -4339,7 +4358,7 @@ msgstr "Khoá"
 #: model_terms:ir.ui.view,arch_db:stock.product_category_form_view_inherit
 #: model_terms:ir.ui.view,arch_db:stock.view_location_form
 msgid "Logistics"
-msgstr "Kho vận"
+msgstr "Logistics"
 
 #. module: stock
 #: model:ir.model.fields.selection,name:stock.selection__barcode_rule__type__lot
@@ -5926,7 +5945,6 @@ msgstr "Nhóm sản phẩm"
 #: model:ir.model.fields,field_description:stock.field_stock_putaway_rule__category_id
 #: model:ir.model.fields,field_description:stock.field_stock_quant__product_categ_id
 #: model:ir.model.fields,field_description:stock.field_stock_warehouse_orderpoint__product_category_id
-#: model_terms:ir.ui.view,arch_db:stock.quant_search_view
 #: model_terms:ir.ui.view,arch_db:stock.stock_putaway_list
 msgid "Product Category"
 msgstr "Danh mục sản phẩm"
@@ -7194,7 +7212,7 @@ msgstr "Xuất kho và giao hàng (2 bước)"
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_res_config_settings__module_delivery_sendcloud
 msgid "Sendcloud Connector"
-msgstr ""
+msgstr "Kết nối Sendcloud"
 
 #. module: stock
 #: model:mail.template,description:stock.mail_template_data_delivery_confirmation
@@ -7307,8 +7325,11 @@ msgid ""
 msgstr ""
 
 #. module: stock
+#. odoo-javascript
+#: code:addons/stock/static/src/views/list/inventory_report_list_controller.js:0
 #: model:ir.actions.server,name:stock.action_view_set_quants_tree
 #: model_terms:ir.ui.view,arch_db:stock.view_stock_quant_tree_inventory_editable
+#, python-format
 msgid "Set"
 msgstr "Cài"
 
@@ -7525,7 +7546,7 @@ msgstr "Chữ ký"
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.vpicktree
 msgid "Signed"
-msgstr "Đã kí"
+msgstr "Đã ký"
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.stock_package_type_form
@@ -7829,7 +7850,7 @@ msgstr "Báo cáo quy tác kho"
 #. module: stock
 #: model:ir.model,name:stock.model_stock_replenishment_info
 msgid "Stock supplier replenishment information"
-msgstr ""
+msgstr "Thông tin nhà cung cấp bổ sung tồn kho"
 
 #. module: stock
 #: model:ir.model,name:stock.model_stock_replenishment_option
@@ -8432,6 +8453,15 @@ msgstr ""
 "có thể là lưu trữ sản phẩm và tạo một sản phẩm mới thay thế."
 
 #. module: stock
+#. odoo-python
+#: code:addons/stock/models/product.py:0
+#, python-format
+msgid ""
+"This product's company cannot be changed as long as there are quantities of "
+"it belonging to another company."
+msgstr ""
+
+#. module: stock
 #: model:ir.model.fields,help:stock.field_stock_change_product_qty__new_quantity
 msgid ""
 "This quantity is expressed in the Default Unit of Measure of the product."
@@ -8480,8 +8510,8 @@ msgid ""
 "This user will be responsible of the next activities related to logistic "
 "operations for this product."
 msgstr ""
-"Người dùng này sẽ có trách nhiệm thực hiện hoạt động tiếp theo liên quan đến"
-" hoạt động kho vận của sản phẩm này."
+"Người dùng này sẽ có trách nhiệm thực hiện các hành động tiếp theo liên quan"
+" đến hoạt động logistics của sản phẩm này."
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.inventory_warning_reset_view
@@ -9599,8 +9629,8 @@ msgstr "Bạn không thể nhập số lượng âm."
 #. odoo-python
 #: code:addons/stock/models/stock_move.py:0
 #, python-format
-msgid "You can only delete draft moves."
-msgstr "Bạn chỉ có thể xóa dịch chuyển nháp."
+msgid "You can only delete draft or cancelled moves."
+msgstr ""
 
 #. module: stock
 #. odoo-python
@@ -9643,6 +9673,13 @@ msgid ""
 msgstr ""
 "You cannot cancel a stock move that has been set to 'Done'. Create a return "
 "in order to reverse the moves which took place."
+
+#. module: stock
+#. odoo-python
+#: code:addons/stock/models/stock_move.py:0
+#, python-format
+msgid "You cannot change a cancelled stock move, create a new line instead."
+msgstr ""
 
 #. module: stock
 #. odoo-python
@@ -9871,6 +9908,13 @@ msgstr ""
 #, python-format
 msgid "You may only return one picking at a time."
 msgstr "Bạn chỉ có thể trả lại một phiếu điều chuyển trong cùng thời điểm"
+
+#. module: stock
+#. odoo-python
+#: code:addons/stock/model/stock_picking.py:0
+#, python-format
+msgid " You might want to update the locations of this transfer's operations "
+msgstr ""
 
 #. module: stock
 #. odoo-python

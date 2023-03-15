@@ -1190,6 +1190,11 @@ X[]
                     // JW cAfter: '<p>[]def</p>',
                     contentAfter: '<h1>[]<br></h1><p>def</p>',
                 });
+                await testEditor(BasicEditor, {
+                    contentBefore: '<h1>[abc</h1><p>]<br></p><p>def</p>',
+                    stepFunction: deleteForward,
+                    contentAfter: '<h1>[]<br></h1><p><br></p><p>def</p>',
+                });
             });
             it('should delete last character of paragraph, ignoring the selected paragraph break', async () => {
                 await testEditor(BasicEditor, {
@@ -2668,6 +2673,11 @@ X[]
                     // JW cAfter: '<p>[]def</p>',
                     contentAfter: '<h1>[]<br></h1><p>def</p>',
                 });
+                await testEditor(BasicEditor, {
+                    contentBefore: '<h1>[abc</h1><p>]<br></p><p>def</p>',
+                    stepFunction: deleteBackward,
+                    contentAfter: '<h1>[]<br></h1><p><br></p><p>def</p>',
+                });
             });
             it('should delete last character of paragraph, ignoring the selected paragraph break', async () => {
                 await testEditor(BasicEditor, {
@@ -2677,6 +2687,14 @@ X[]
                     // doesn't remove a paragraph break.
                     stepFunction: deleteBackward,
                     contentAfter: '<p>ab[]</p><p>def</p>',
+                });
+                await testEditor(BasicEditor, {
+                    contentBefore: '<p>ab[c</p><p>]<br></p><p>def</p>',
+                    // This type of selection (typically done with a triple
+                    // click) is "corrected" before remove so triple clicking
+                    // doesn't remove a paragraph break.
+                    stepFunction: deleteBackward,
+                    contentAfter: '<p>ab[]</p><p><br></p><p>def</p>',
                 });
             });
             it('should delete first character of paragraph, as well as selected paragraph break', async () => {
@@ -2694,6 +2712,22 @@ X[]
                     // doesn't remove a paragraph break.
                     stepFunction: deleteBackward,
                     contentAfter: '<p>ab[]</p><p t="unbreak">def</p>',
+                });
+                await testEditor(BasicEditor, {
+                    contentBefore: '<p>ab[c</p><p t="unbreak">]<br></p><p>def</p>',
+                    // This type of selection (typically done with a triple
+                    // click) is "corrected" before remove so triple clicking
+                    // doesn't remove a paragraph break.
+                    stepFunction: deleteBackward,
+                    contentAfter: '<p>ab[]</p><p t="unbreak"><br></p><p>def</p>',
+                });
+                await testEditor(BasicEditor, {
+                    contentBefore: '<p>ab[c</p><p>]<br></p><p t="unbreak">def</p>',
+                    // This type of selection (typically done with a triple
+                    // click) is "corrected" before remove so triple clicking
+                    // doesn't remove a paragraph break.
+                    stepFunction: deleteBackward,
+                    contentAfter: '<p>ab[]</p><p><br></p><p t="unbreak">def</p>',
                 });
             });
             it('should delete first character of unbreakable, ignoring selected paragraph break', async () => {
@@ -2857,6 +2891,18 @@ X[]
                     contentBefore: '<p>ab<b class="oe_unremovable">[cd]</b>ef</p>',
                     stepFunction: deleteBackward,
                     contentAfter: '<p>ab<b class="oe_unremovable">[]\u200B</b>ef</p>',
+                });
+            });
+            it('should delete if first element and append in paragraph', async () => {
+                await testEditor(BasicEditor, {
+                    contentBefore: `<blockquote><br>[]</blockquote>`,
+                    stepFunction: deleteBackward,
+                    contentAfter: `<p>[]<br></p>`,
+                });
+                await testEditor(BasicEditor, {
+                    contentBefore: `<h1>[]abcd</h1>`,
+                    stepFunction: deleteBackward,
+                    contentAfter: `<p>[]abcd</p>`,
                 });
             });
         });
@@ -5658,6 +5704,22 @@ X[]
                 });
             });
         });
+        it('should apply a color to a slice of text containing a span', async () => {
+            await testEditor(BasicEditor, {
+                contentBefore: '<p>a[b<span>c</span>d]e</p>',
+                stepFunction: editor => editor.execCommand('applyColor', 'rgb(255, 0, 0)', 'color'),
+                contentAfter: '<p>a<font style="color: rgb(255, 0, 0);">[b<span>c</span>d]</font>e</p>',
+            });
+        });
+        it('should distribute color to texts and to button separately', async () => {
+            await testEditor(BasicEditor, {
+                contentBefore: '<p>a[b<a class="btn">c</a>d]e</p>',
+                stepFunction: editor => editor.execCommand('applyColor', 'rgb(255, 0, 0)', 'color'),
+                contentAfter: '<p>a<font style="color: rgb(255, 0, 0);">[b</font>' +
+                    '<a class="btn"><font style="color: rgb(255, 0, 0);">c</font></a>' +
+                    '<font style="color: rgb(255, 0, 0);">d]</font>e</p>',
+            });
+        });
     });
 
     describe('markdown', () => {
@@ -5668,12 +5730,24 @@ X[]
                     stepFunction: async editor => insertText(editor, '`'),
                     contentAfter: '<p>\u200B<code class="o_inline_code">ab</code>\u200B[]cd</p>',
                 });
+                // BACKWARDS
+                await testEditor(BasicEditor, {
+                    contentBefore: '<p>[]ab`cd</p>',
+                    stepFunction: async editor => insertText(editor, '`'),
+                    contentAfter: '<p>\u200B<code class="o_inline_code">[]ab</code>cd</p>',
+                });
             });
             it('should convert text into inline code (middle)', async () => {
                 await testEditor(BasicEditor, {
                     contentBefore: '<p>ab`cd[]ef</p>',
                     stepFunction: async editor => insertText(editor, '`'),
                     contentAfter: '<p>ab<code class="o_inline_code">cd</code>\u200B[]ef</p>',
+                });
+                // BACKWARDS
+                await testEditor(BasicEditor, {
+                    contentBefore: '<p>ab[]cd`ef</p>',
+                    stepFunction: async editor => insertText(editor, '`'),
+                    contentAfter: '<p>ab<code class="o_inline_code">[]cd</code>ef</p>',
                 });
             });
             it('should convert text into inline code (end)', async () => {
@@ -5682,12 +5756,25 @@ X[]
                     stepFunction: async editor => insertText(editor, '`'),
                     contentAfter: '<p>ab<code class="o_inline_code">cd</code>\u200B[]</p>',
                 });
+                // BACKWARDS
+                await testEditor(BasicEditor, {
+                    contentBefore: '<p>ab[]cd`</p>',
+                    stepFunction: async editor => insertText(editor, '`'),
+                    contentAfter: '<p>ab<code class="o_inline_code">[]cd</code></p>',
+                });
             });
-            it('should convert text into inline code and leave an earlier and a later backtick alone', async () => {
+            it('should convert text into inline code, with parasite backticks', async () => {
                 await testEditor(BasicEditor, {
                     contentBefore: '<p>a`b`cd[]e`f</p>',
                     stepFunction: async editor => insertText(editor, '`'),
+                    // The closest PREVIOUS backtick is prioritary
                     contentAfter: '<p>a`b<code class="o_inline_code">cd</code>\u200B[]e`f</p>',
+                });
+                await testEditor(BasicEditor, {
+                    contentBefore: '<p>ab[]cd`e`f</p>',
+                    stepFunction: async editor => insertText(editor, '`'),
+                    // If there is no previous backtick, use the closest NEXT backtick.
+                    contentAfter: '<p>ab<code class="o_inline_code">[]cd</code>e`f</p>',
                 });
             });
             it('should not convert text into inline code when traversing HTMLElements', async () => {
@@ -5709,6 +5796,56 @@ X[]
                     contentBefore: '<p>a<code class="o_inline_code">b`cd[]e</code>f</p>',
                     stepFunction: async editor => insertText(editor, '`'),
                     contentAfter: '<p>a<code class="o_inline_code">b`cd`[]e</code>f</p>',
+                });
+            });
+            it('should convert text into inline code even when text nodes are split', async () => {
+                // BEFORE
+                await testEditor(BasicEditor, {
+                    contentBefore: '<p>b`c[]d</p>',
+                    stepFunction: async editor => {
+                        editor.document.getSelection().anchorNode.before(document.createTextNode('a'));
+                        insertText(editor, '`');
+                    },
+                    contentAfter: '<p>ab<code class="o_inline_code">c</code>\u200B[]d</p>',
+                });
+                // AFTER
+                await testEditor(BasicEditor, {
+                    contentBefore: '<p>a`b[]c</p>',
+                    stepFunction: async editor => {
+                        editor.document.getSelection().anchorNode.after(document.createTextNode('d'));
+                        insertText(editor, '`');
+                    },
+                    contentAfter: '<p>a<code class="o_inline_code">b</code>\u200B[]cd</p>',
+                });
+                // BOTH
+                await testEditor(BasicEditor, {
+                    contentBefore: '<p>b`c[]d</p>',
+                    stepFunction: async editor => {
+                        editor.document.getSelection().anchorNode.before(document.createTextNode('a'));
+                        editor.document.getSelection().anchorNode.after(document.createTextNode('e'));
+                        insertText(editor, '`');
+                    },
+                    contentAfter: '<p>ab<code class="o_inline_code">c</code>\u200B[]de</p>',
+                });
+            });
+            it('should convert text into inline code even when the other backtick is in a separate text node', async () => {
+                // BACKTICK IS PREVIOUS SIBLING
+                await testEditor(BasicEditor, {
+                    contentBefore: '<p>ab[]c</p>',
+                    stepFunction: async editor => {
+                        editor.document.getSelection().anchorNode.before(document.createTextNode('`'));
+                        insertText(editor, '`');
+                    },
+                    contentAfter: '<p>\u200B<code class="o_inline_code">ab</code>\u200B[]c</p>',
+                });
+                // BACKTICK IS NEXT SIBLING
+                await testEditor(BasicEditor, {
+                    contentBefore: '<p>ab[]c</p>',
+                    stepFunction: async editor => {
+                        editor.document.getSelection().anchorNode.after(document.createTextNode('`'));
+                        insertText(editor, '`');
+                    },
+                    contentAfter: '<p>ab<code class="o_inline_code">[]c</code></p>',
                 });
             });
         });

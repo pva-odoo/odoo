@@ -1882,6 +1882,98 @@ QUnit.module("Views", ({ beforeEach }) => {
         assert.hasAttrValue(event.parentElement, "colspan", "2", "should appear over two days.");
     });
 
+    QUnit.test("create all day event in month mode: utc-11", async (assert) => {
+        assert.expect(3);
+        patchTimeZone(-660);
+        serverData.models.event.records = [];
+
+        await makeView({
+            type: "calendar",
+            resModel: "event",
+            serverData,
+            arch: `
+                <calendar date_start="start" date_stop="stop" all_day="allday" mode="month" event_open_popup="1">
+                    <field name="name" />
+                </calendar>
+            `,
+            mockRPC(route, { args, method }) {
+                if (method === "create") {
+                    assert.deepEqual(args[0], {
+                        name: "new event",
+                        start: "2016-12-14",
+                        stop: "2016-12-14",
+                        allday: true,
+                    });
+                }
+            },
+        });
+
+        await clickDate(target, "2016-12-14");
+        await editInput(target, ".o-calendar-quick-create--input", "new event");
+        await click(target, ".o-calendar-quick-create--create-btn");
+
+        const event = findEvent(target, 1);
+        assert.strictEqual(
+            event.textContent.replace(/[\s\n\r]+/g, ""),
+            "newevent",
+            "should display the new event with time and title"
+        );
+
+        const evBox = event.getBoundingClientRect();
+        const dateCell = target.querySelector(`[data-date="2016-12-14"]`);
+        const dtBox = dateCell.getBoundingClientRect();
+        assert.ok(
+            evBox.left >= dtBox.left &&
+                evBox.right <= dtBox.right &&
+                evBox.top >= dtBox.top &&
+                evBox.bottom <= dtBox.bottom,
+            "event should be inside the proper date cell"
+        );
+    });
+
+    QUnit.test("create all day event in year mode: utc-11", async (assert) => {
+        assert.expect(2);
+        patchTimeZone(-660);
+        serverData.models.event.records = [];
+
+        await makeView({
+            type: "calendar",
+            resModel: "event",
+            serverData,
+            arch: `
+                <calendar date_start="start" date_stop="stop" all_day="allday" mode="year" event_open_popup="1">
+                    <field name="name" />
+                </calendar>
+            `,
+            mockRPC(route, { args, method }) {
+                if (method === "create") {
+                    assert.deepEqual(args[0], {
+                        name: "new event",
+                        start: "2016-12-14",
+                        stop: "2016-12-14",
+                        allday: true,
+                    });
+                }
+            },
+        });
+
+        await clickDate(target, "2016-12-14");
+        await editInput(target, ".o-calendar-quick-create--input", "new event");
+        await click(target, ".o-calendar-quick-create--create-btn");
+
+        const event = findEvent(target, 1);
+        const evBox = event.getBoundingClientRect();
+        const dateCell = target.querySelector(`[data-date="2016-12-14"]`);
+        const dtBox = dateCell.getBoundingClientRect();
+        assert.ok(
+            evBox.left >= dtBox.left &&
+                evBox.right <= dtBox.right &&
+                evBox.top >= dtBox.top &&
+                evBox.bottom <= dtBox.bottom,
+            "event should be inside the proper date cell"
+        );
+    });
+
     QUnit.test(`create event with default context (no quickCreate)`, async (assert) => {
         assert.expect(3);
 
@@ -2479,6 +2571,58 @@ QUnit.module("Views", ({ beforeEach }) => {
         // Click on the "all" filter to reload all events
         await toggleFilter(target, "partner_ids", "all");
         assert.containsN(target, ".fc-event", 9, "should display 9 events on the week");
+    });
+
+    QUnit.test("Colors: cycling through available colors", async (assert) => {
+        serverData.models.filter_partner.records = Array.from({ length: 56 }, (_, i) => ({
+            id: i + 1,
+            user_id: uid,
+            partner_id: i + 1,
+            partner_checked: true,
+        }));
+        serverData.models.partner.records = Array.from({ length: 56 }, (_, i) => ({
+            id: i + 1,
+            display_name: `partner ${i + 1}`,
+        }));
+        serverData.models.event.records = Array.from({ length: 56 }, (_, i) => ({
+            id: i + 1,
+            user_id: uid,
+            partner_id: i + 1,
+            name: `event ${i + 1}`,
+            start: `2016-12-12 0${i % 10}:00:00`,
+            stop: `2016-12-12 0${i % 10}:00:00`,
+            partner_ids: [i + 1],
+        }));
+        await makeView({
+            type: "calendar",
+            resModel: "event",
+            serverData,
+            arch: `
+                <calendar date_start="start" date_stop="stop" mode="day" color="partner_ids">
+                    <field name="partner_ids" write_model="filter_partner" write_field="partner_id" filter_field="partner_checked"  />
+                </calendar>
+            `,
+        });
+        assert.containsN(target, ".fc-event", 56);
+        assert.hasClass(findEvent(target, 1), "o_calendar_color_1");
+        assert.hasClass(findEvent(target, 55), "o_calendar_color_55");
+        assert.hasClass(findEvent(target, 56), "o_calendar_color_1");
+
+        const partnerSection = findFilterPanelSection(target, "partner_ids");
+        assert.containsOnce(partnerSection, ".o_calendar_filter_item[data-value='all']");
+        assert.containsN(partnerSection, ".o_calendar_filter_item:not([data-value='all'])", 56);
+        assert.hasClass(
+            partnerSection.querySelector(".o_calendar_filter_item[data-value='1']"),
+            "o_cw_filter_color_1"
+        );
+        assert.hasClass(
+            partnerSection.querySelector(".o_calendar_filter_item[data-value='55']"),
+            "o_cw_filter_color_55"
+        );
+        assert.hasClass(
+            partnerSection.querySelector(".o_calendar_filter_item[data-value='56']"),
+            "o_cw_filter_color_1"
+        );
     });
 
     QUnit.test(`Add filters and specific color`, async (assert) => {

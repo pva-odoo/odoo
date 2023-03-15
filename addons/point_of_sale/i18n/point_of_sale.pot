@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 16.0+e\n"
+"Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-15 12:48+0000\n"
-"PO-Revision-Date: 2022-12-15 12:48+0000\n"
+"POT-Creation-Date: 2023-02-02 10:33+0000\n"
+"PO-Revision-Date: 2023-02-02 10:33+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -3202,6 +3202,13 @@ msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
+#: code:addons/point_of_sale/static/src/js/Chrome.js:0
+#, python-format
+msgid "Missing barcode nomenclature"
+msgstr ""
+
+#. module: point_of_sale
+#. odoo-javascript
 #: code:addons/point_of_sale/static/src/xml/Screens/PartnerListScreen/PartnerDetailsEdit.xml:0
 #, python-format
 msgid "Mobile"
@@ -6022,6 +6029,15 @@ msgid ""
 msgstr ""
 
 #. module: point_of_sale
+#. odoo-javascript
+#: code:addons/point_of_sale/static/src/js/Chrome.js:0
+#, python-format
+msgid ""
+"The barcode nomenclature setting is not configured. Make sure to configure "
+"it on your Point of Sale configuration settings"
+msgstr ""
+
+#. module: point_of_sale
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_config.py:0
 #, python-format
@@ -6715,6 +6731,13 @@ msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
+#. openerp-web
+#: code:addons/point_of_sale/static/src/js/Screens/ReceiptScreen/ReceiptScreen.js:0
+#, python-format
+msgid "This order is not yet synced to server. Make sure it is synced then try again."
+msgstr ""
+
+#. module: point_of_sale
 #: code:addons/point_of_sale/models/pos_session.py:0
 #, python-format
 msgid ""
@@ -6873,6 +6896,9 @@ msgstr ""
 #: code:addons/point_of_sale/static/src/xml/Popups/CashMoveReceipt.xml:0
 #, python-format
 msgid "VAT:"
+#: code:addons/point_of_sale/static/src/js/Screens/ReceiptScreen/ReceiptScreen.js:0
+#, python-format
+msgid "Unsynced order"
 msgstr ""
 
 #. module: point_of_sale
@@ -7034,6 +7060,13 @@ msgstr ""
 msgid ""
 "You can add some from the Products menu, or linked any existing by flagging them as \"Available in PoS\".\n"
 "                    Or you can add demo data for testing purpose. Please mind that this is an irreversible action."
+msgstr ""
+
+#. module: point_of_sale
+#. odoo-python
+#: code:addons/point_of_sale/models/pos_config.py:0
+#, python-format
+msgid "You can only have one cash payment method."
 msgstr ""
 
 #. module: point_of_sale
